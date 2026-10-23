@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Configurar la carpeta actual para que lea el archivo index.html
+// Servir la página web index.html
 app.use(express.static(__dirname));
 
 // Reemplazá con tu Access Token de Producción (APP_USR-...)
@@ -20,28 +20,38 @@ const payment = new Payment(client);
 app.post('/api/process-payment', async (req, res) => {
     try {
         const paymentData = req.body;
-        
-        const response = await payment.create({
-            body: {
-                transaction_amount: Number(paymentData.transaction_amount),
-                token: paymentData.token,
-                description: paymentData.description || "Cobro Terminal Web",
-                installments: Number(paymentData.installments),
-                payment_method_id: paymentData.payment_method_id,
-                payer: {
-                    email: paymentData.email
-                }
-            }
-        });
 
-        res.json({ success: true, status: response.status, id: response.id });
+        const body = {
+            transaction_amount: Number(paymentData.transaction_amount),
+            token: paymentData.token,
+            description: paymentData.description || "Cobro Terminal Web",
+            installments: Number(paymentData.installments || 1),
+            payment_method_id: paymentData.payment_method_id,
+            issuer_id: paymentData.issuer_id,
+            payer: {
+                email: paymentData.email || paymentData.payer?.email,
+                identification: paymentData.payer?.identification
+            }
+        };
+
+        const response = await payment.create({ body });
+
+        res.json({ 
+            success: true, 
+            status: response.status, 
+            status_detail: response.status_detail,
+            id: response.id 
+        });
     } catch (error) {
         console.error("Error al procesar cobro:", error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ 
+            success: false, 
+            error: error.message || 'Error en el pago' 
+        });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor de cobros ejecutándose en el puerto ${PORT}`);
+    console.log(`Servidor ejecutándose en el puerto ${PORT}`);
 });
