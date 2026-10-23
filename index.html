@@ -73,7 +73,7 @@
 </div>
 
 <script>
-    // IMPORTANTE: Tu Public Key de Mercado Pago (APP_USR-...)
+    // IMPORTANTE: Reemplazá con tu Public Key de Mercado Pago (APP_USR-...)
     const mp = new MercadoPago('APP_USR-1fea79bc-69ae-4588-ba3b-f276877bd425', {
         locale: 'es-AR'
     });
@@ -96,36 +96,34 @@
                 onReady: () => {
                     console.log('Brick de pago cargado correctamente');
                 },
-                onSubmit: ({ selectedPaymentMethod, formData }) => {
-                    formData.transaction_amount = Number(document.getElementById('amount').value);
-                    formData.email = document.getElementById('email').value;
+                onSubmit: async ({ selectedPaymentMethod, formData }) => {
+                    try {
+                        formData.transaction_amount = Number(document.getElementById('amount').value);
+                        formData.email = document.getElementById('email').value;
 
-                    return new Promise((resolve, reject) => {
-                        fetch('/api/process-payment', {
+                        const response = await fetch('/api/process-payment', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify(formData),
-                        })
-                        .then((response) => response.json())
-                        .then((data) => {
-                            if(data.success && (data.status === 'approved' || data.status === 'in_process')) {
-                                alert('¡Pago Exitoso! Estado: ' + data.status);
-                            } else {
-                                alert('El pago no se pudo completar. Detalle: ' + (data.status_detail || data.error || 'Rechazado'));
-                            }
-                            resolve();
-                        })
-                        .catch((error) => {
-                            alert('Error de conexión con el servidor');
-                            reject();
                         });
-                    });
+
+                        const data = await response.json();
+
+                        if (data.success && (data.status === 'approved' || data.status === 'in_process')) {
+                            alert('¡Pago Exitoso! Estado: ' + data.status);
+                        } else {
+                            alert('El pago no se pudo completar: ' + (data.error || data.status_detail || 'Rechazado'));
+                        }
+                    } catch (err) {
+                        alert('Error de conexión al enviar el pago.');
+                        console.error(err);
+                    }
                 },
                 onError: (error) => {
                     console.error('Error en Brick:', error);
-                    alert('Error en el formulario: ' + JSON.stringify(error));
+                    alert('Error en el formulario de tarjeta');
                 },
             },
         };
@@ -137,10 +135,6 @@
     };
 
     renderCardBrick(bricksBuilder);
-</script>
-
-</body>
-</html>
 </script>
 
 </body>
