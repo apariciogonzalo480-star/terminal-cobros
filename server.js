@@ -1,14 +1,18 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { MercadoPagoConfig, Payment } = require('mercadopago');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Configurar la carpeta actual para que lea el archivo index.html
+app.use(express.static(__dirname));
+
 // Reemplazá con tu Access Token de Producción (APP_USR-...)
 const client = new MercadoPagoConfig({ 
-    accessToken: 'TU_ACCESS_TOKEN_AQUI' 
+    accessToken: 'APP_USR-7033303816063781-102314-3e1ec47a077283a1660b4d6865c123a8-513347548' 
 });
 
 const payment = new Payment(client);
