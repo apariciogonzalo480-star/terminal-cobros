@@ -73,8 +73,8 @@
 </div>
 
 <script>
-    // IMPORTANTE: Reemplazá con tu Public Key de Mercado Pago (APP_USR-...)
-    const mp = new MercadoPago('APP_USR-1fea79bc-69ae-4588-ba3b-f276877bd425', {
+    // IMPORTANTE: Tu Public Key de Mercado Pago (APP_USR-...)
+    const mp = new MercadoPago('TU_PUBLIC_KEY_AQUI', {
         locale: 'es-AR'
     });
     
@@ -110,21 +110,22 @@
                         })
                         .then((response) => response.json())
                         .then((data) => {
-                            if(data.success && data.status === 'approved') {
-                                alert('¡Pago Aprobado con Éxito!');
+                            if(data.success && (data.status === 'approved' || data.status === 'in_process')) {
+                                alert('¡Pago Exitoso! Estado: ' + data.status);
                             } else {
-                                alert('Error o pago rechazado: ' + (data.status || 'intente nuevamente'));
+                                alert('El pago no se pudo completar. Detalle: ' + (data.status_detail || data.error || 'Rechazado'));
                             }
                             resolve();
                         })
                         .catch((error) => {
-                            alert('Error al procesar el pago');
+                            alert('Error de conexión con el servidor');
                             reject();
                         });
                     });
                 },
                 onError: (error) => {
                     console.error('Error en Brick:', error);
+                    alert('Error en el formulario: ' + JSON.stringify(error));
                 },
             },
         };
