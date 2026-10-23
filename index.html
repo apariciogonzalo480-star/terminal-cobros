@@ -92,16 +92,20 @@
                     }
                 }
             },
-            callbacks: {
+        callbacks: {
                 onReady: () => {
                     console.log('Brick de pago cargado correctamente');
                 },
                 onSubmit: async ({ selectedPaymentMethod, formData }) => {
                     try {
+                        // Aseguramos que se inyecte el monto y el email correctamente
                         formData.transaction_amount = Number(document.getElementById('amount').value);
-                        formData.email = document.getElementById('email').value;
+                        formData.payer = formData.payer || {};
+                        formData.payer.email = document.getElementById('email').value;
 
-const response = await fetch('/api/process-payment', {                            headers: {
+                        const response = await fetch('/api/process-payment', {
+                            method: 'POST',
+                            headers: {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify(formData),
