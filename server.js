@@ -7,10 +7,10 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Servir la página web index.html
+// Servir archivos estáticos
 app.use(express.static(__dirname));
 
-// Reemplazá con tu Access Token de Producción (APP_USR-...)
+// Tu Access Token de Producción
 const client = new MercadoPagoConfig({ 
     accessToken: 'APP_USR-7033303816063781-102314-3e1ec47a077283a1660b4d6865c123a8-513347548' 
 });
@@ -43,10 +43,10 @@ app.post('/api/process-payment', async (req, res) => {
             id: response.id 
         });
     } catch (error) {
-        console.error("Error al procesar cobro:", error);
+        console.error("Error de Mercado Pago:", error);
         res.status(500).json({ 
             success: false, 
-            error: error.message || 'Error en el pago' 
+            error: error.message || 'Error al procesar el pago' 
         });
     }
 });
