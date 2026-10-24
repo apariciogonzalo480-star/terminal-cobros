@@ -96,18 +96,24 @@
                 onReady: () => {
                     console.log('Brick de pago cargado correctamente');
                 },
-                onSubmit: async ({ selectedPaymentMethod, formData }) => {
+         onSubmit: async ({ selectedPaymentMethod, formData }) => {
                     try {
-                        formData.transaction_amount = Number(document.getElementById('amount').value);
-                        formData.payer = formData.payer || {};
-                        formData.payer.email = document.getElementById('email').value;
+                        // Creamos un cuerpo limpio para enviar al servidor
+                        const payload = {
+                            ...formData,
+                            transaction_amount: Number(document.getElementById('amount').value),
+                            payer: {
+                                ...(formData.payer || {}),
+                                email: document.getElementById('email').value
+                            }
+                        };
 
                         const response = await fetch('/api/process-payment', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify(formData),
+                            body: JSON.stringify(payload),
                         });
 
                         const data = await response.json();
