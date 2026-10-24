@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { MercadoPagoConfig, Payment } = require('mercadopago');
 
 const app = express();
@@ -10,27 +9,25 @@ app.use(cors());
 // Servir archivos estáticos
 app.use(express.static(__dirname));
 
-// Tu Access Token de Producción
+// Configuración de Mercado Pago con tu Token de producción
 const client = new MercadoPagoConfig({ 
-    accessToken: 'APP_USR-7033303816063781-102314-3e1ec47a077283a1660b4d6865c123a8-513347548' 
+    accessToken: 'TU_ACCESS_TOKEN_AQUI' 
 });
 
 const payment = new Payment(client);
 
 app.post('/api/process-payment', async (req, res) => {
     try {
-        const paymentData = req.body;
-
         const body = {
-            transaction_amount: Number(paymentData.transaction_amount),
-            token: paymentData.token,
-            description: paymentData.description || "Cobro Terminal Web",
-            installments: Number(paymentData.installments || 1),
-            payment_method_id: paymentData.payment_method_id,
-            issuer_id: paymentData.issuer_id,
+            transaction_amount: Number(req.body.transaction_amount),
+            token: req.body.token,
+            description: req.body.description || "Cobro Terminal Web",
+            installments: Number(req.body.installments || 1),
+            payment_method_id: req.body.payment_method_id,
+            issuer_id: req.body.issuer_id,
             payer: {
-                email: paymentData.email || paymentData.payer?.email,
-                identification: paymentData.payer?.identification
+                email: req.body.payer?.email || "cliente@email.com",
+                identification: req.body.payer?.identification
             }
         };
 
@@ -43,7 +40,7 @@ app.post('/api/process-payment', async (req, res) => {
             id: response.id 
         });
     } catch (error) {
-        console.error("Error de Mercado Pago:", error);
+        console.error("Error en MP:", error);
         res.status(500).json({ 
             success: false, 
             error: error.message || 'Error al procesar el pago' 
@@ -53,5 +50,5 @@ app.post('/api/process-payment', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor ejecutándose en el puerto ${PORT}`);
+    console.log(`Servidor en puerto ${PORT}`);
 });
