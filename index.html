@@ -113,13 +113,21 @@
 
         <div class="form-group">
             <label for="docType">Tipo de Documento</label>
-            <select id="docType" data-mp="docType"></select>
+            <select id="docType" data-mp="docType">
+                <option value="DNI">DNI</option>
+                <option value="LC">LC</option>
+                <option value="LE">LE</option>
+                <option value="PAS">Pasaporte</option>
+            </select>
         </div>
 
         <div class="form-group">
             <label for="docNumber">Número de Documento</label>
             <input type="text" id="docNumber" data-mp="docNumber" placeholder="Número sin puntos" required>
         </div>
+
+        <!-- Campo oculto para cuotas -->
+        <select id="installments" data-mp="installments" style="display: none;"></select>
 
         <button type="submit" id="payButton">Pagar</button>
     </form>
@@ -128,10 +136,9 @@
 </div>
 
 <script>
-    // Tu Public Key de Producción
+    // Tu Public Key de Producción (reemplazá con la tuya si hace falta)
     const mp = new MercadoPago('APP_USR-b635e795-bd67-4a39-bd3e-6ac868765a83');
 
-    // Inicializar campos de tarjeta seguros
     const cardForm = mp.cardForm({
         amount: "100",
         iframe: true,
@@ -156,9 +163,7 @@
                 
                 const {
                     paymentMethodId: payment_method_id,
-                    issuerId: issuer_id,
                     cardholderEmail: email,
-                    amount,
                     token,
                     installments,
                     identificationType,
@@ -186,7 +191,7 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success && (data.status === 'approved' || data.status === 'in_process')) {
+                    if (data.success && (data.status === 'approved' || data.status == 'in_process')) {
                         mensajeDiv.style.color = '#2ea043';
                         mensajeDiv.innerText = `¡Pago Exitoso! Estado: ${data.status}`;
                     } else {
@@ -199,9 +204,6 @@
                     mensajeDiv.style.color = '#f85149';
                     mensajeDiv.innerText = "Error de conexión al procesar.";
                 });
-            },
-            onFetching: (resource) => {
-                console.log("Tokenizando tarjeta...", resource);
             }
         }
     });
