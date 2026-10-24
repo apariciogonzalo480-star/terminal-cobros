@@ -11,7 +11,7 @@ app.use(express.static(__dirname));
 
 // Configuración de Mercado Pago con tu Token de producción
 const client = new MercadoPagoConfig({ 
-    accessToken: 'TU_ACCESS_TOKEN_AQUI' 
+    accessToken: 'APP_USR-4126115447875625-102316-ab8889ed41bd37674ae7c583195d34c8-3790163076' 
 });
 
 const payment = new Payment(client);
