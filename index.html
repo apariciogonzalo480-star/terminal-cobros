@@ -66,21 +66,21 @@
 
     <div class="form-group">
         <label for="email">EMAIL DEL CLIENTE</label>
-        <input type="email" id="email" placeholder="cliente@email.com" value="cliente@email.com">
+        <input type="email" id="email" value="cliente@email.com">
     </div>
 
     <div id="cardPaymentBrick_container"></div>
 </div>
 
 <script>
-    // IMPORTANTE: Tu Public Key de Mercado Pago (APP_USR-...)
+    // Inicialización con tu Public Key real
     const mp = new MercadoPago('APP_USR-b635e795-bd67-4a39-bd3e-6ac868765a83', {
         locale: 'es-AR'
     });
     
     const bricksBuilder = mp.bricks();
 
-    const renderCardBrick = async (bricksBuilder) => {
+    const renderCardBrick = async () => {
         const settings = {
             initialization: {
                 amount: Number(document.getElementById('amount').value),
@@ -93,27 +93,21 @@
                 }
             },
             callbacks: {
-                onReady: () => {
-                    console.log('Brick de pago cargado correctamente');
-                },
-        onSubmit: async ({ selectedPaymentMethod, formData }) => {
+                onReady: () => {},
+                onSubmit: async ({ selectedPaymentMethod, formData }) => {
                     try {
-                        // Creamos un cuerpo limpio para enviar al servidor
-                        const payload = {
-                            ...formData,
-                            transaction_amount: Number(document.getElementById('amount').value),
-                            payer: {
-                                ...(formData.payer || {}),
-                                email: document.getElementById('email').value
-                            }
-                        };
+                        // Inyectamos de forma segura el monto y el email actualizados de los inputs
+                        formData.transaction_amount = Number(document.getElementById('amount').value);
+                        formData.payer = formData.payer || {};
+                        formData.payer.email = document.getElementById('email').value;
 
-                        const response = await fetch('/api/process-payment', {
+                        // Usamos la URL absoluta de tu servicio en Render para evitar bloqueos del navegador
+                        const response = await fetch('https://terminal-cobros.onrender.com/api/process-payment', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify(payload),
+                            body: JSON.stringify(formData),
                         });
 
                         const data = await response.json();
@@ -124,7 +118,7 @@
                             alert('El pago no se pudo completar: ' + (data.error || data.status_detail || 'Rechazado'));
                         }
                     } catch (err) {
-                        console.error("Error de red:", err);
+                        console.error("Error:", err);
                         alert('Error de conexión al enviar el pago.');
                     }
                 },
@@ -133,14 +127,11 @@
                 },
             },
         };
-        window.cardBrickController = await bricksBuilder.create(
-            'cardPayment',
-            'cardPaymentBrick_container',
-            settings
-        );
+        
+        await bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', settings);
     };
 
-    renderCardBrick(bricksBuilder);
+    renderCardBrick();
 </script>
 
 </body>
