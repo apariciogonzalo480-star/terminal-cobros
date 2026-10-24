@@ -1,70 +1,35 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { MercadoPagoConfig, Payment } = require('mercadopago');
 
 const app = express();
-
-// Middlewares
 app.use(express.json());
 app.use(cors());
-
-// Servir la carpeta actual para entregar index.html
 app.use(express.static(__dirname));
 
-// Configuración de Credenciales de Mercado Pago
-// Reemplaza con tu Access Token real de Producción (APP_USR-...)
-const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || 'TU_ACCESS_TOKEN_AQUI';
-
+// Configuración con tu Access Token de Producción
 const client = new MercadoPagoConfig({ 
-    accessToken: ACCESS_TOKEN 
+    accessToken: 'APP_USR-4126115447875625-102316-ab8889ed41bd37674ae7c583195d34c8-3790163076' 
 });
 
 const payment = new Payment(client);
 
-// Ruta principal para servir la terminal
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Endpoint de procesamiento de pagos
 app.post('/api/process-payment', async (req, res) => {
     try {
-        const {
-            transaction_amount,
-            token,
-            description,
-            installments,
-            payment_method_id,
-            issuer_id,
-            payer
-        } = req.body;
-
-        // Validación estricta en servidor
-        if (!transaction_amount || isNaN(transaction_amount) || transaction_amount <= 0) {
-            return res.status(400).json({
-                success: false,
-                error: 'El monto de la transacción debe ser un número válido mayor a 0.'
-            });
-        }
-
-        if (!token) {
-            return res.status(400).json({
-                success: false,
-                error: 'Falta el token de seguridad de la tarjeta.'
-            });
-        }
+        const { token, transaction_amount, payment_method_id, installments, email, identification } = req.body;
 
         const body = {
             transaction_amount: Number(transaction_amount),
             token: token,
-            description: description || "Cobro Terminal Web",
+            description: "Cobro Terminal Web",
             installments: Number(installments || 1),
             payment_method_id: payment_method_id,
-            issuer_id: issuer_id,
             payer: {
-                email: payer?.email || "cliente@email.com",
-                identification: payer?.identification || {}
+                email: email || "cliente@email.com",
+                identification: {
+                    type: identification?.type || "DNI",
+                    number: identification?.number || "11111111"
+                }
             }
         };
 
@@ -76,22 +41,16 @@ app.post('/api/process-payment', async (req, res) => {
             status_detail: response.status_detail,
             id: response.id 
         });
-
     } catch (error) {
-        console.error("Error al procesar el pago en Mercado Pago:", error);
-        
-        // Manejo detallado de errores de la API de Mercado Pago
-        const errorMessage = error.message || error.cause?.[0]?.description || 'Error interno al procesar el pago';
-        
+        console.error("Error en MP:", error);
         res.status(500).json({ 
             success: false, 
-            error: errorMessage 
+            error: error.message || 'Error al procesar el pago' 
         });
     }
 });
 
-// Inicio del servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`[Farmacia Gabinoe Terminal] Servidor activo en puerto ${PORT}`);
+    console.log(`Servidor en puerto ${PORT}`);
 });
