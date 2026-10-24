@@ -3,135 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal de Cobro Directo</title>
+    <title>Farmacia Gabinoe - Terminal de Cobro</title>
+    <!-- Tailwind CSS para diseño profesional -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SDK V2 de Mercado Pago -->
     <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <!-- FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0d1117',
+                        cardBg: '#161b22',
+                        borderColor: '#30363d',
+                        accentBlue: '#58a6ff',
+                        accentGreen: '#238636',
+                        accentRed: '#da3633'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0d1117;
             color: #c9d1d9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
-        .container {
-            background-color: #161b22;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            width: 100%;
-            max-width: 420px;
-            border: 1px solid #30363d;
-        }
-        h2 {
-            text-align: center;
-            color: #58a6ff;
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            background-color: #0d1117;
-            color: #fff;
-            box-sizing: border-box;
-            font-size: 1em;
-        }
-        #cardPaymentBrick_container {
-            margin-top: 20px;
+        /* Personalización de los iFrames del Brick */
+        #cardPaymentBrick_container iframe {
+            border-radius: 0.5rem !important;
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-<div class="container">
-    <h2>💳 Terminal de Cobro Directo</h2>
-    
-    <div class="form-group">
-        <label for="amount">MONTO A COBRAR ($)</label>
-        <input type="number" id="amount" value="100" min="1">
+    <div class="w-full max-w-lg bg-cardBg border border-borderColor rounded-xl shadow-2xl p-6 sm:p-8">
+        
+        <!-- Header / Identidad -->
+        <div class="flex items-center justify-between border-b border-borderColor pb-4 mb-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-600/20 text-accentBlue flex items-center justify-center text-xl font-bold border border-blue-500/30">
+                    <i class="fa-solid font-bold fa-notes-medical"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-wide">Farmacia Gabinoe</h1>
+                    <p class="text-xs text-gray-400">Terminal de Cobro Directo</p>
+                </div>
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema En Línea
+            </span>
+        </div>
+
+        <!-- Campos Principales -->
+        <div class="space-y-4 mb-6">
+            <div>
+                <label for="amount" class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1">
+                    Monto a Cobrar ($ ARS)
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-lg font-bold">$</span>
+                    <input type="number" id="amount" value="100" min="1" step="any"
+                        class="w-full pl-8 pr-4 py-2.5 bg-darkBg border border-borderColor rounded-lg text-white font-mono text-lg focus:ring-2 focus:ring-accentBlue focus:border-transparent outline-none transition-all"
+                        placeholder="0.00" onchange="actualizarMontoBrick()">
+                </div>
+            </div>
+
+            <div>
+                <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1">
+                    Email del Cliente
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <i class="fa-regular fa-envelope"></i>
+                    </span>
+                    <input type="email" id="email" value="cliente@email.com"
+                        class="w-full pl-10 pr-4 py-2.5 bg-darkBg border border-borderColor rounded-lg text-white text-sm focus:ring-2 focus:ring-accentBlue focus:border-transparent outline-none transition-all"
+                        placeholder="cliente@ejemplo.com">
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerta de Estado / Feedback -->
+        <div id="statusAlert" class="hidden mb-6 p-4 rounded-lg text-sm flex items-start space-x-3 border">
+            <i id="statusIcon" class="text-lg mt-0.5"></i>
+            <div>
+                <h4 id="statusTitle" class="font-bold"></h4>
+                <p id="statusMessage" class="text-xs opacity-90 mt-0.5"></p>
+            </div>
+        </div>
+
+        <!-- Contenedor del Mercado Pago Card Brick -->
+        <div id="cardPaymentBrick_container" class="min-h-[250px] flex items-center justify-center">
+            <div class="flex flex-col items-center justify-center text-gray-400 py-8">
+                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-accentBlue mb-2"></i>
+                <p class="text-xs">Cargando pasarela de pago segura...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-6 pt-4 border-t border-borderColor flex items-center justify-between text-xs text-gray-500">
+            <span><i class="fa-solid fa-shield-halved mr-1"></i> Encriptación SSL de 256-bits</span>
+            <span>Mercado Pago SDK v2</span>
+        </div>
+
     </div>
-
-    <div class="form-group">
-        <label for="email">EMAIL DEL CLIENTE</label>
-        <input type="email" id="email" value="cliente@email.com">
-    </div>
-
-    <div id="cardPaymentBrick_container"></div>
-</div>
 
 <script>
-    // Inicialización con tu Public Key real
-    const mp = new MercadoPago('APP_USR-b635e795-bd67-4a39-bd3e-6ac868765a83', {
-        locale: 'es-AR'
-    });
+    // IMPORTANTE: Colocá tu PUBLIC KEY de Mercado Pago
+    const PUBLIC_KEY = 'TU_PUBLIC_KEY_AQUI'; 
     
-    const bricksBuilder = mp.bricks();
+    let mp;
+    let cardBrickController;
 
-    const renderCardBrick = async () => {
-        const settings = {
-            initialization: {
-                amount: Number(document.getElementById('amount').value),
-            },
-            customization: {
-                visual: {
-                    style: {
-                        theme: 'dark'
-                    }
-                }
-            },
-            callbacks: {
-                onReady: () => {},
-                onSubmit: async ({ selectedPaymentMethod, formData }) => {
-                    try {
-                        // Inyectamos de forma segura el monto y el email actualizados de los inputs
-                        formData.transaction_amount = Number(document.getElementById('amount').value);
-                        formData.payer = formData.payer || {};
-                        formData.payer.email = document.getElementById('email').value;
+    // Mostrar alerta en la interfaz
+    function showAlert(type, title, message) {
+        const alertBox = document.getElementById('statusAlert');
+        const alertIcon = document.getElementById('statusIcon');
+        const alertTitle = document.getElementById('statusTitle');
+        const alertMsg = document.getElementById('statusMessage');
 
-                        // Usamos la URL absoluta de tu servicio en Render para evitar bloqueos del navegador
-                        const response = await fetch('https://terminal-cobros.onrender.com/api/process-payment', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(formData),
-                        });
+        alertBox.classList.remove('hidden', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30',
+                                 'bg-rose-500/10', 'text-rose-400', 'border-rose-500/30',
+                                 'bg-amber-500/10', 'text-amber-400', 'border-amber-500/30');
 
-                        const data = await response.json();
+        if (type === 'success') {
+            alertBox.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+            alertIcon.className = 'fa-solid fa-circle-check text-lg mt-0.5 text-emerald-400';
+        } else if (type === 'error') {
+            alertBox.classList.add('bg-rose-500/10', 'text-rose-400', 'border-rose-500/30');
+            alertIcon.className = 'fa-solid fa-circle-xmark text-lg mt-0.5 text-rose-400';
+        } else if (type === 'warning') {
+            alertBox.classList.add('bg-amber-500/10', 'text-amber-400', 'border-amber-500/30');
+            alertIcon.className = 'fa-solid fa-triangle-exclamation text-lg mt-0.5 text-amber-400';
+        }
 
-                        if (data.success && (data.status === 'approved' || data.status === 'in_process')) {
-                            alert('¡Pago Exitoso! Estado: ' + data.status);
-                        } else {
-                            alert('El pago no se pudo completar: ' + (data.error || data.status_detail || 'Rechazado'));
+        alertTitle.textContent = title;
+        alertMsg.textContent = message;
+        alertBox.classList.remove('hidden');
+    }
+
+    // Ocultar alerta
+    function hideAlert() {
+        document.getElementById('statusAlert').classList.add('hidden');
+    }
+
+    // Inicialización de Mercado Pago y el Brick
+    async function initMercadoPago() {
+        try {
+            mp = new MercadoPago "APP_USR-b635e795-bd67-4a39-bd3e-6ac868765a83", { locale: 'es-AR' });
+            const bricksBuilder = mp.bricks();
+
+            const settings = {
+                initialization: {
+                    amount: Number(document.getElementById('amount').value) || 100,
+                },
+                customization: {
+                    visual: {
+                        style: {
+                            theme: 'dark'
                         }
-                    } catch (err) {
-                        console.error("Error:", err);
-                        alert('Error de conexión al enviar el pago.');
                     }
                 },
-                onError: (error) => {
-                    console.error('Error en Brick:', error);
-                },
-            },
-        };
-        
-        await bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', settings);
-    };
+                callbacks: {
+                    onReady: () => {
+                        console.log('Brick de tarjeta listo');
+                    },
+                    onSubmit: async ({ selectedPaymentMethod, formData }) => {
+                        hideAlert();
+                        
+                        // Validaciones básicas de cliente
+                        const monto = Number(document.getElementById('amount').value);
+                        const email = document.getElementById('email').value.trim();
 
-    renderCardBrick();
+                        if (!monto || monto <= 0) {
+                            showAlert('warning', 'Monto Inválido', 'Por favor, ingrese un monto mayor a $0.');
+                            return;
+                        }
+
+                        if (!email || !email.includes('@')) {
+                            showAlert('warning', 'Email Inválido', 'Por favor, ingrese un correo electrónico válido.');
+                            return;
+                        }
+
+                        // Construcción limpia del Payload evitando manipular directamente formData de MP
+                        const paymentPayload = {
+                            token: formData.token,
+                            issuer_id: formData.issuer_id,
+                            payment_method_id: formData.payment_method_id,
+                            transaction_amount: monto,
+                            installments: Number(formData.installments || 1),
+                            description: "Cobro Farmacia Gabinoe",
+                            payer: {
+                                email: email,
+                                identification: formData.payer?.identification || {}
+                            }
+                        };
+
+                        try {
+                            const response = await fetch('/api/process-payment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(paymentPayload),
+                            });
+
+                            const data = await response.json();
+
+                            if (response.ok && data.success && (data.status === 'approved' || data.status === 'in_process')) {
+                                showAlert('success', '¡Pago Procesado Exitosamente!', `ID de Operación: ${data.id} | Estado: ${data.status.toUpperCase()}`);
+                            } else {
+                                const detalleError = data.error || data.status_detail || 'Operación rechazada por la entidad emisora.';
+                                showAlert('error', 'No se pudo completar el pago', detalleError);
+                            }
+                        } catch (err) {
+                            console.error("Error de red al procesar el pago:", err);
+                            showAlert('error', 'Error de Conexión', 'No se pudo conectar con el servidor. Verifica tu conexión e intenta nuevamente.');
+                        }
+                    },
+                    onError: (error) => {
+                        console.error('Error interno del Brick:', error);
+                        showAlert('error', 'Error en Formulario', 'Ocurrió un inconveniente al validar la tarjeta.');
+                    },
+                },
+            };
+
+            // Limpiar contenedor antes de renderizar
+            document.getElementById('cardPaymentBrick_container').innerHTML = '';
+            cardBrickController = await bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', settings);
+
+        } catch (error) {
+            console.error("Error al inicializar Mercado Pago:", error);
+            showAlert('error', 'Error de Configuración', 'Asegúrate de colocar tu PUBLIC_KEY válida en el código.');
+        }
+    }
+
+
+    // Reinicializar o actualizar monto si cambia
+    function actualizarMontoBrick() {
+        if (cardBrickController) {
+            initMercadoPago();
+        }
+    }
+
+    // Cargar SDK al iniciar
+    window.onload = () => {
+        initMercadoPago();
+    };
 </script>
 
 </body>
